@@ -1,84 +1,127 @@
-// Create simple style
-const style = document.createElement("style");
-style.textContent = `
-    body {
-        padding: 20px;
-    }
-    input {
-        display: block;
-        margin: 10px;
-        padding: 5px;
-    }
-    button {
-        margin: 5px;
-        padding: 10px;
-    }
-    .result {
-        margin: 10px;
-        font-size: 18px;
-    }
-`;
-document.head.appendChild(style);
+let box = document.createElement("div");
+box.style.position = "fixed";
+box.style.top = "20px";
+box.style.right = "20px";
+box.style.padding = "10px";
+box.style.width = "200px";
+box.style.border = "1px solid #aaa";
+box.style.background = "#fff";
+box.style.fontFamily = "Arial";
+box.style.borderRadius = "8px";
+document.body.appendChild(box);
 
-// Create calculator
-const num1 = document.createElement("input");
-num1.type = "text";
-num1.placeholder = "First number";
+let scr = document.createElement("div");
+scr.style.height = "40px";
+scr.style.border = "1px solid #ccc";
+scr.style.marginBottom = "8px";
+scr.style.padding = "5px";
+scr.style.textAlign = "right";
+scr.style.fontSize = "20px";
+scr.style.borderRadius = "5px";
+scr.textContent = "0";
+box.appendChild(scr);
 
-const num2 = document.createElement("input");
-num2.type = "text";
-num2.placeholder = "Second number";
+let current = "";
+let storedValue = null;
+let lastOp = null;
 
-const addButton = document.createElement("button");
-addButton.textContent = "+";
-
-const subtractButton = document.createElement("button");
-subtractButton.textContent = "-";
-
-const multiplyButton = document.createElement("button");
-multiplyButton.textContent = "*";
-
-const divideButton = document.createElement("button");
-divideButton.textContent = "/";
-
-const result = document.createElement("div");
-result.className = "result";
-result.textContent = "Result: ";
-
-// Add to page
-document.body.appendChild(num1);
-document.body.appendChild(num2);
-document.body.appendChild(addButton);
-document.body.appendChild(subtractButton);
-document.body.appendChild(multiplyButton);
-document.body.appendChild(divideButton);
-document.body.appendChild(result);
-
-// Button events
-addButton.onclick = function () {
-  const n1 = parseFloat(num1.value) || 0;
-  const n2 = parseFloat(num2.value) || 0;
-  result.textContent = "Result: " + (n1 + n2);
-};
-
-subtractButton.onclick = function () {
-  const n1 = parseFloat(num1.value) || 0;
-  const n2 = parseFloat(num2.value) || 0;
-  result.textContent = "Result: " + (n1 - n2);
-};
-
-multiplyButton.onclick = function () {
-  const n1 = parseFloat(num1.value) || 0;
-  const n2 = parseFloat(num2.value) || 0;
-  result.textContent = "Result: " + n1 * n2;
-};
-
-divideButton.onclick = function () {
-  const n1 = parseFloat(num1.value) || 0;
-  const n2 = parseFloat(num2.value) || 0;
-  if (n2 === 0) {
-    result.textContent = "Error: Cannot divide by zero";
-  } else {
-    result.textContent = "Result: " + n1 / n2;
+function applyOperation(a, b, op) {
+  a = Number(a);
+  b = Number(b);
+  switch (op) {
+    case "+":
+      return a + b;
+    case "-":
+      return a - b;
+    case "*":
+      return a * b;
+    case "/":
+      return b === 0 ? "Err" : a / b;
   }
-};
+}
+
+let btns = [
+  "7",
+  "8",
+  "9",
+  "/",
+  "4",
+  "5",
+  "6",
+  "*",
+  "1",
+  "2",
+  "3",
+  "-",
+  "0",
+  ".",
+  "=",
+  "+",
+  "C",
+];
+
+let grid = document.createElement("div");
+grid.style.display = "grid";
+grid.style.gridTemplateColumns = "repeat(4,1fr)";
+grid.style.gap = "5px";
+box.appendChild(grid);
+
+btns.forEach((b) => {
+  let bt = document.createElement("button");
+  bt.textContent = b;
+
+  bt.style.padding = "10px";
+  bt.style.background = "#f5f5f5";
+  bt.style.border = "1px solid #bbb";
+  bt.style.fontSize = "16px";
+  bt.style.cursor = "pointer";
+  bt.style.borderRadius = "5px";
+
+  if (b === "C") {
+    bt.style.background = "#aaa";
+  }
+
+  bt.onclick = function () {
+    if (b === "C") {
+      current = "";
+      storedValue = null;
+      lastOp = null;
+      scr.textContent = "0";
+      return;
+    }
+
+    if (b === "=") {
+      if (storedValue !== null && lastOp && current !== "") {
+        storedValue = applyOperation(storedValue, current, lastOp);
+        scr.textContent = storedValue;
+        current = "";
+        lastOp = null;
+      }
+      return;
+    }
+
+    if (["+", "-", "*", "/"].includes(b)) {
+      if (current !== "") {
+        if (storedValue === null) {
+          storedValue = current;
+        } else if (lastOp) {
+          storedValue = applyOperation(storedValue, current, lastOp);
+        }
+      }
+      lastOp = b;
+      current = "";
+      scr.textContent = storedValue;
+      return;
+    }
+
+    if (scr.textContent === "0" && b !== ".") {
+      current = b;
+    } else {
+      current += b;
+    }
+
+    scr.textContent = current;
+  };
+
+  grid.appendChild(bt);
+});
